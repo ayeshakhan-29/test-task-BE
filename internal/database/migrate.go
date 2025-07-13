@@ -33,13 +33,22 @@ func (db *Database) RunMigrations() error {
 		return fmt.Errorf("error selecting database: %w", err)
 	}
 
-	// Create migrations table if it doesn't exist
+	// Create or update migrations table
 	_, err = db.DB.Exec(`
 		CREATE TABLE IF NOT EXISTS schema_migrations (
-			version VARCHAR(50) PRIMARY KEY,
+			version VARCHAR(255) NOT NULL PRIMARY KEY,
 			applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 	`)
+	
+	// Ensure the version column is large enough
+	_, err = db.DB.Exec(`
+		ALTER TABLE schema_migrations 
+		MODIFY COLUMN version VARCHAR(255) NOT NULL
+	`)
+	if err != nil {
+		log.Printf("Warning: Could not modify version column: %v", err)
+	}
 	if err != nil {
 		return fmt.Errorf("error creating migrations table: %w", err)
 	}

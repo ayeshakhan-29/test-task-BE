@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ayeshakhan-29/test-task-BE/internal/app/handlers"
 	"github.com/ayeshakhan-29/test-task-BE/internal/config"
 	"github.com/ayeshakhan-29/test-task-BE/internal/database"
 	"github.com/ayeshakhan-29/test-task-BE/internal/logger"
@@ -49,13 +50,28 @@ func main() {
 		}
 	}()
 
-	// Run database migrations
-	if err := db.RunMigrations(); err != nil {
-		logger.Fatalf("Error running database migrations: %v", err)
+	// Check if users table exists and has the correct schema
+	var tableExists bool
+	err = db.DB.QueryRow(
+		`SELECT COUNT(*) > 0 FROM information_schema.tables 
+		WHERE table_schema = DATABASE() AND table_name = 'users'`).Scan(&tableExists)
+
+	if err != nil {
+		log.Fatalf("Error checking if users table exists: %v", err)
+	}
+
+	// Only run migrations if users table doesn't exist
+	if !tableExists {
+		// Run database migrations
+		if err := db.RunMigrations(); err != nil {
+			log.Fatalf("Error running database migrations: %v", err)
+		}
+	} else {
+		log.Println("Users table already exists, skipping migrations")
 	}
 
 	// Initialize router with middleware
-	router := setupRouter()
+	router := setupRouter(db)
 
 	// Create HTTP server with timeouts
 	srv := &http.Server{
@@ -67,17 +83,7 @@ func main() {
 		ReadHeaderTimeout: cfg.Server.ReadHeaderTimeout,
 	}
 
-	// API v1 routes
-	v1 := router.Group("/api/v1")
-	{
-		// Health check endpoint
-		v1.GET("/health", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"status":  "ok",
-				"version": "1.0.0",
-			})
-		})
-	}
+	// API v1 routes are registered in handlers.SetupRoutes
 
 	// Start server in a goroutine
 	go func() {
@@ -106,13 +112,12 @@ func main() {
 }
 
 // setupRouter initializes and configures the Gin router with middleware and routes
-func setupRouter() *gin.Engine {
-	// Create a new Gin router
+func setupRouter(db *database.Database) *gin.Engine {
+	// Create a new Gin router with default middleware
 	router := gin.New()
 
-	// Add built-in Gin middleware
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	// Add middleware
+	handlers.SetupRoutes(router, db)
 
 	return router
 }

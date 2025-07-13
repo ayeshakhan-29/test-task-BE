@@ -43,3 +43,39 @@ BEGIN
 2025/07/13 14:58:56.246839 [INFO ] main.go:94 Shutting down server...
 2025/07/13 14:58:56.247454 [INFO ] main.go:105 Server exited properly
 2025/07/13 15:00:56.727254 [INFO ] main.go:84 Server is running on port 8080
+2025/07/13 15:19:26.450727 [INFO ] main.go:94 Shutting down server...
+2025/07/13 15:19:26.452253 [INFO ] main.go:105 Server exited properly
+2025/07/13 15:19:29.958758 [FATAL] main.go:55 Error running database migrations: error recording migration 2_add_auth_fields: Error 1406 (22001): Data too long for column 'version' at row 1
+2025/07/13 15:19:36.577190 [FATAL] main.go:55 Error running database migrations: error recording migration 2_add_auth_fields: Error 1406 (22001): Data too long for column 'version' at row 1
+2025/07/13 15:21:41.545972 [FATAL] main.go:55 Error running database migrations: error creating migrations table: Error 1068 (42000): Multiple primary key defined
+2025/07/13 15:22:53.890395 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 15:23:28.744013 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 15:23:28.744234 [FATAL] main.go:77 Error starting server: listen tcp :8080: bind: address already in use
+2025/07/13 15:29:54.112316 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 15:39:44.898911 [INFO ] main.go:85 Shutting down server...
+2025/07/13 15:39:44.899750 [INFO ] main.go:96 Server exited properly
+2025/07/13 15:40:34.439509 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 15:43:45.257886 [INFO ] main.go:85 Shutting down server...
+2025/07/13 15:43:45.258205 [INFO ] main.go:96 Server exited properly
+2025/07/13 15:44:32.761087 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 15:48:31.062624 [INFO ] main.go:85 Shutting down server...
+2025/07/13 15:48:31.062781 [INFO ] main.go:96 Server exited properly
+2025/07/13 15:48:34.476383 [FATAL] main.go:55 Error running database migrations: error executing statement in migration 4_fix_users_table: Error 1050 (42S01): Table 'users' already exists
+Statement: CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+2025/07/13 15:49:01.300050 [FATAL] main.go:55 Error running database migrations: error executing statement in migration 4_fix_users_table: Error 1050 (42S01): Table 'users' already exists
+Statement: CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+2025/07/13 15:50:06.269012 [INFO ] main.go:90 Server is running on port 8080

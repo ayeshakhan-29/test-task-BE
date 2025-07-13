@@ -1,11 +1,16 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/ayeshakhan-29/test-task-BE/internal/database"
+	"github.com/ayeshakhan-29/test-task-BE/internal/middleware"
+	"github.com/gin-gonic/gin"
+)
 
 // SetupRoutes configures all the routes for the application
-func SetupRoutes(router *gin.Engine) {
+func SetupRoutes(router *gin.Engine, db *database.Database) {
 	// Initialize handlers
 	healthHandler := NewHealthHandler()
+	authHandler := NewAuthHandler(db)
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")
@@ -13,6 +18,15 @@ func SetupRoutes(router *gin.Engine) {
 		// Health check
 		v1.GET("/health", healthHandler.HealthCheck)
 
-		// Add more routes here
+		// Auth routes
+		v1.POST("/signup", authHandler.Signup)
+		v1.POST("/login", authHandler.Login)
+
+		// Protected routes
+		authRoutes := v1.Group("/")
+		authRoutes.Use(middleware.AuthMiddleware())
+		{
+			// Add protected routes here
+		}
 	}
 }
