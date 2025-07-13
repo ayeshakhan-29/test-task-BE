@@ -1,0 +1,45 @@
+2025/07/13 13:18:06.741005 [FATAL] main.go:44 Error initializing database: error connecting to database: dial tcp :0: connect: can't assign requested address
+2025/07/13 13:20:28.797800 [FATAL] main.go:44 Error initializing database: error connecting to database: Error 1045 (28000): Access denied for user 'postgres'@'localhost' (using password: YES)
+2025/07/13 13:22:03.667544 [FATAL] main.go:44 Error initializing database: error connecting to database: Error 1045 (28000): Access denied for user 'postgres'@'localhost' (using password: NO)
+2025/07/13 13:22:18.475261 [FATAL] main.go:44 Error initializing database: error connecting to database: Error 1045 (28000): Access denied for user 'mysql'@'localhost' (using password: NO)
+2025/07/13 13:23:23.429251 [FATAL] main.go:44 Error initializing database: error connecting to database: Error 1045 (28000): Access denied for user 'mxsql'@'localhost' (using password: NO)
+2025/07/13 13:23:34.471086 [FATAL] main.go:44 Error initializing database: error connecting to database: Error 1045 (28000): Access denied for user 'url-analyzer'@'localhost' (using password: NO)
+2025/07/13 13:25:09.680223 [FATAL] main.go:44 Error initializing database: error connecting to database: Error 1045 (28000): Access denied for user 'mysql'@'localhost' (using password: NO)
+2025/07/13 13:25:15.580252 [FATAL] main.go:54 Error running database migrations: error applying migration 0001_initial_schema: Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    us' at line 11
+2025/07/13 13:28:22.198226 [FATAL] main.go:54 Error running database migrations: error applying migration 0001_initial_schema: Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'DELIMITER //
+
+CREATE PROCEDURE apply_migration()
+BEGIN
+    -- Create users table' at line 2
+2025/07/13 13:28:59.565253 [FATAL] main.go:54 Error running database migrations: error applying migration 0001_initial_schema: Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    us' at line 12
+2025/07/13 13:31:27.546857 [FATAL] main.go:54 Error running database migrations: error recording migration 0001_create_users_table: Error 1406 (22001): Data too long for column 'version' at row 1
+2025/07/13 13:32:36.076125 [FATAL] main.go:54 Error running database migrations: error applying migration 0000_fix_migrations_table: Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CREATE TABLE IF NOT EXISTS schema_migrations (
+    version VARCHAR(255) PRIMARY ' at line 4
+2025/07/13 13:34:49.805091 [FATAL] main.go:54 Error running database migrations: error applying migration 0001_initial_schema: Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    us' at line 12
+2025/07/13 13:35:53.700570 [FATAL] main.go:54 Error running database migrations: error recording migration 0001_initial_schema: Error 1406 (22001): Data too long for column 'version' at row 1
+2025/07/13 13:41:17.771542 [FATAL] main.go:54 Error running database migrations: error recording migration 1_initial_schema: Error 1406 (22001): Data too long for column 'version' at row 1
+2025/07/13 13:41:56.993735 [FATAL] main.go:54 Error running database migrations: error recording migration 1: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 13:42:19.294599 [FATAL] main.go:54 Error running database migrations: error recording migration 0_init: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 13:47:41.621507 [FATAL] main.go:54 Error running database migrations: error recording migration 0: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 13:48:14.445389 [FATAL] main.go:54 Error running database migrations: error recording migration 0: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 14:43:13.579127 [FATAL] main.go:54 Error running database migrations: error recording migration 0: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 14:46:01.467878 [FATAL] main.go:54 Error running database migrations: error recording migration 0: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 14:47:13.830164 [FATAL] main.go:54 Error running database migrations: error querying applied migrations: Error 1054 (42S22): Unknown column 'id' in 'field list'
+2025/07/13 14:48:33.954326 [INFO ] main.go:84 Server is running on port 8080
+2025/07/13 14:48:44.758190 [INFO ] main.go:84 Server is running on port 8080
+2025/07/13 14:48:44.758298 [FATAL] main.go:86 Error starting server: listen tcp :8080: bind: address already in use
+2025/07/13 14:49:05.965794 [INFO ] main.go:94 Shutting down server...
+2025/07/13 14:49:05.966009 [INFO ] main.go:105 Server exited properly
+2025/07/13 14:49:09.183515 [INFO ] main.go:84 Server is running on port 8080
+2025/07/13 14:50:27.580602 [INFO ] main.go:94 Shutting down server...
+2025/07/13 14:50:27.581249 [INFO ] main.go:105 Server exited properly
+2025/07/13 14:50:34.831088 [INFO ] main.go:84 Server is running on port 8080
+2025/07/13 14:58:56.246839 [INFO ] main.go:94 Shutting down server...
+2025/07/13 14:58:56.247454 [INFO ] main.go:105 Server exited properly
+2025/07/13 15:00:56.727254 [INFO ] main.go:84 Server is running on port 8080
