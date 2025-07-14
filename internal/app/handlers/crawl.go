@@ -98,6 +98,83 @@ func NewCrawlHandler(db *database.Database) *CrawlHandler {
 	return &CrawlHandler{db: db}
 }
 
+func (h *CrawlHandler) BulkDeleteCrawls(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var req models.BulkDeleteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format: " + err.Error()})
+		return
+	}
+
+	// Validate that we have IDs to delete
+	if len(req.IDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No IDs provided in request"})
+		return
+	}
+
+	// Start a transaction
+	db := h.db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			db.Rollback()
+		}
+	}()
+
+	// Verify ownership of all records
+	var invalidIDs []uint
+	for _, id := range req.IDs {
+		var count int64
+		if err := db.Model(&models.CrawlResult{}).
+			Where("id = ? AND user_id = ?", id, userID).
+			Count(&count).
+			Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify ownership"})
+			return
+		}
+
+		if count == 0 {
+			invalidIDs = append(invalidIDs, id)
+		}
+	}
+
+	if len(invalidIDs) > 0 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Not authorized to delete some crawls",
+			"invalid_ids": invalidIDs,
+		})
+		return
+	}
+
+	// Delete the records
+	result := db.Where("id IN (?) AND user_id = ?", req.IDs, userID).Delete(&models.CrawlResult{})
+	if result.Error != nil {
+		db.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete crawls"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No crawls found to delete"})
+		return
+	}
+
+	if err := db.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Crawls deleted successfully",
+		"deleted_count": result.RowsAffected,
+	})
+}
+
 func (h *CrawlHandler) CrawlURL(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {

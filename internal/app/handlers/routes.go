@@ -28,7 +28,8 @@ func SetupRoutes(router *gin.Engine, db *database.Database) {
 			crawlHandler := NewCrawlHandler(db)
 			protected.POST("/crawl", crawlHandler.CrawlURL)
 			protected.GET("/crawls", crawlHandler.ListCrawls)
-			protected.DELETE("/crawls/:id", crawlHandler.DeleteCrawl)
+			protected.DELETE("/delete/:id", crawlHandler.DeleteCrawl)
+			protected.DELETE("/bulk-delete", crawlHandler.BulkDeleteCrawls)
 		}
 	}
 }
