@@ -79,3 +79,48 @@ Statement: CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 2025/07/13 15:50:06.269012 [INFO ] main.go:90 Server is running on port 8080
+2025/07/13 16:45:40.783070 [INFO ] main.go:100 Shutting down server...
+2025/07/13 16:45:40.783626 [INFO ] main.go:111 Server exited properly
+2025/07/13 16:45:44.257384 [FATAL] main.go:45 Error initializing database: failed to migrate database: Error 1170 (42000): BLOB/TEXT column 'email' used in key specification without a key length
+2025/07/13 16:48:40.012894 [FATAL] main.go:45 Error initializing database: failed to migrate database: Error 3780 (HY000): Referencing column 'user_id' and referenced column 'id' in foreign key constraint 'fk_crawl_results_user' are incompatible.
+2025/07/13 16:52:06.169882 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 16:55:18.978326 [INFO ] main.go:85 Shutting down server...
+2025/07/13 16:55:18.978462 [INFO ] main.go:96 Server exited properly
+2025/07/13 16:55:24.480999 [INFO ] main.go:75 Server is running on port 8080
+2025/07/13 17:00:14.237105 [INFO ] main.go:85 Shutting down server...
+2025/07/13 17:00:14.238248 [INFO ] main.go:96 Server exited properly
+2025/07/13 17:00:16.676723 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 02:58:49.251143 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 03:00:58.989120 [INFO ] main.go:85 Shutting down server...
+2025/07/14 03:00:58.990382 [INFO ] main.go:96 Server exited properly
+2025/07/14 03:01:03.130025 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 03:17:43.819877 [INFO ] main.go:85 Shutting down server...
+2025/07/14 03:17:43.821104 [INFO ] main.go:96 Server exited properly
+2025/07/14 03:17:46.364278 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 03:40:31.674973 [INFO ] main.go:85 Shutting down server...
+2025/07/14 03:40:31.675988 [INFO ] main.go:96 Server exited properly
+2025/07/14 03:40:34.145323 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 03:49:06.389315 [INFO ] main.go:85 Shutting down server...
+2025/07/14 03:49:06.390377 [INFO ] main.go:96 Server exited properly
+2025/07/14 03:49:08.602775 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 03:56:15.661937 [INFO ] main.go:85 Shutting down server...
+2025/07/14 03:56:15.662577 [INFO ] main.go:96 Server exited properly
+2025/07/14 03:56:18.720017 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 03:58:25.657858 [INFO ] main.go:85 Shutting down server...
+2025/07/14 03:58:25.658990 [INFO ] main.go:96 Server exited properly
+2025/07/14 03:58:28.059744 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 04:00:19.816431 [INFO ] main.go:85 Shutting down server...
+2025/07/14 04:00:19.816796 [INFO ] main.go:96 Server exited properly
+2025/07/14 04:00:22.120665 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 04:03:51.399693 [INFO ] main.go:85 Shutting down server...
+2025/07/14 04:03:51.400408 [INFO ] main.go:96 Server exited properly
+2025/07/14 04:03:53.892050 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 04:04:29.356447 [INFO ] main.go:85 Shutting down server...
+2025/07/14 04:04:29.357089 [INFO ] main.go:96 Server exited properly
+2025/07/14 04:04:31.774175 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 04:07:59.014992 [INFO ] main.go:85 Shutting down server...
+2025/07/14 04:07:59.015390 [INFO ] main.go:96 Server exited properly
+2025/07/14 04:08:01.540109 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 04:15:33.797395 [INFO ] main.go:85 Shutting down server...
+2025/07/14 04:15:33.797637 [INFO ] main.go:96 Server exited properly
+2025/07/14 04:15:37.120806 [INFO ] main.go:75 Server is running on port 8080

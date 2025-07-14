@@ -1,94 +1,92 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
 	"os"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/ayeshakhan-29/test-task-BE/internal/app/models"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type Database struct {
-	DB *sql.DB
+	DB *gorm.DB
 }
 
-// NewDatabase creates a new database connection
 func NewDatabase() (*Database, error) {
-	// First connect without specifying a database to create it if needed
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/?parseTime=true",
-		os.Getenv("DB_USER"),
-		sqlEscapeString(os.Getenv("DB_PASSWORD")),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
+	// Get database configuration
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	fmt.Printf("Connecting to database: %s@tcp(%s:%s)/%s\n", dbUser, dbHost, dbPort, dbName)
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		dbUser,
+		dbPass,
+		dbHost,
+		dbPort,
+		dbName,
 	)
 
-	tempDB, err := sql.Open("mysql", dsn)
+	// Connect to MySQL
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("error opening database connection: %w", err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// Create the database if it doesn't exist
-	_, err = tempDB.Exec("CREATE DATABASE IF NOT EXISTS `url-analyzer`")
+	sqlDB, err := db.DB()
 	if err != nil {
-		tempDB.Close()
-		return nil, fmt.Errorf("error creating database: %w", err)
+		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
-	tempDB.Close()
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	// Now connect to the specific database
-	dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		os.Getenv("DB_USER"),
-		sqlEscapeString(os.Getenv("DB_PASSWORD")),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		"url-analyzer",
+	fmt.Println("Running database migrations...")
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.CrawlResult{},
 	)
-
-	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("error opening database: %w", err)
+		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	// Test the connection
-	if err := db.Ping(); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error connecting to database: %w", err)
-	}
+	fmt.Println("Database migration completed successfully")
 
-	log.Println("Successfully connected to database")
 	return &Database{DB: db}, nil
 }
 
-// Close closes the database connection
 func (d *Database) Close() error {
-	if d.DB != nil {
-		return d.DB.Close()
-	}
-	return nil
-}
-
-// sqlEscapeString escapes special characters in a string for SQL queries
-func sqlEscapeString(value string) string {
-	// In a real application, consider using parameterized queries instead of string escaping
-	// This is a simplified version for demonstration
-	var escape = map[rune]string{
-		'\'': "''",
-		'"':  "\"",
-		'\b': "\\b",
-		'\n': "\\n",
-		'\r': "\\r",
-		'\t': "\\t",
-		'\\': "\\\\",
+	sqlDB, err := d.DB.DB()
+	if err != nil {
+		return fmt.Errorf("error getting database instance: %w", err)
 	}
 
-	var result string
-	for _, char := range value {
-		if escaped, ok := escape[char]; ok {
-			result += escaped
-		} else {
-			result += string(char)
-		}
-	}
-	return result
+	return sqlDB.Close()
 }
+
+// Create wraps the GORM Create method
+func (d *Database) Create(value interface{}) *gorm.DB {
+	return d.DB.Create(value)
+}
+
+// First wraps the GORM First method
+func (d *Database) First(dest interface{}, conds ...interface{}) *gorm.DB {
+	return d.DB.First(dest, conds...)
+}
+
+// Where wraps the GORM Where method
+func (d *Database) Where(query interface{}, args ...interface{}) *gorm.DB {
+	return d.DB.Where(query, args...)
+}
+
+// Exec wraps the GORM Exec method
+func (d *Database) Exec(sql string, values ...interface{}) *gorm.DB {
+	return d.DB.Exec(sql, values...)
+}
+
+

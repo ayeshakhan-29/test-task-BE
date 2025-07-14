@@ -6,13 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRoutes configures all the routes for the application
 func SetupRoutes(router *gin.Engine, db *database.Database) {
-	// Initialize handlers
 	healthHandler := NewHealthHandler()
 	authHandler := NewAuthHandler(db)
 
-	// API v1 routes
 	v1 := router.Group("/api/v1")
 	{
 		// Health check
@@ -25,8 +22,9 @@ func SetupRoutes(router *gin.Engine, db *database.Database) {
 		// Protected routes
 		authRoutes := v1.Group("/")
 		authRoutes.Use(middleware.AuthMiddleware())
-		{
-			// Add protected routes here
-		}
+		// Initialize the handler once
+		crawlHandler := NewCrawlHandler(db)
+		// Register the route with the full path
+		authRoutes.POST("crawl", crawlHandler.CrawlURL)
 	}
 }

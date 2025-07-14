@@ -50,24 +50,9 @@ func main() {
 		}
 	}()
 
-	// Check if users table exists and has the correct schema
-	var tableExists bool
-	err = db.DB.QueryRow(
-		`SELECT COUNT(*) > 0 FROM information_schema.tables 
-		WHERE table_schema = DATABASE() AND table_name = 'users'`).Scan(&tableExists)
-
-	if err != nil {
-		log.Fatalf("Error checking if users table exists: %v", err)
-	}
-
-	// Only run migrations if users table doesn't exist
-	if !tableExists {
-		// Run database migrations
-		if err := db.RunMigrations(); err != nil {
-			log.Fatalf("Error running database migrations: %v", err)
-		}
-	} else {
-		log.Println("Users table already exists, skipping migrations")
+	// Run database migrations
+	if err := db.RunMigrations(); err != nil {
+		logger.Fatalf("Error running database migrations: %v", err)
 	}
 
 	// Initialize router with middleware
