@@ -12,6 +12,7 @@ import (
 	"github.com/ayeshakhan-29/test-task-BE/internal/database"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/html"
+	"gorm.io/gorm"
 )
 
 func (h *CrawlHandler) ListCrawls(c *gin.Context) {
@@ -46,6 +47,47 @@ func (h *CrawlHandler) ListCrawls(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *CrawlHandler) DeleteCrawl(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get crawl ID from URL parameter
+	crawlID := c.Param("id")
+	if crawlID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Crawl ID is required"})
+		return
+	}
+
+	// Find the crawl record
+	var crawl models.CrawlResult
+	if err := h.db.DB.First(&crawl, crawlID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Crawl not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crawl"})
+		return
+	}
+
+	// Check if user owns this crawl
+	if crawl.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authorized to delete this crawl"})
+		return
+	}
+
+	// Delete the crawl
+	if err := h.db.DB.Delete(&crawl).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete crawl"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Crawl deleted successfully"})
 }
 
 type CrawlHandler struct {
