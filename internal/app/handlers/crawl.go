@@ -14,6 +14,40 @@ import (
 	"golang.org/x/net/html"
 )
 
+func (h *CrawlHandler) ListCrawls(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get all crawls for this user
+	var crawls []models.CrawlResult
+	if err := h.db.DB.Where("user_id = ?", userID).Find(&crawls).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crawls"})
+		return
+	}
+
+	// Convert to response format
+	var response []models.CrawlListResponse
+	for _, crawl := range crawls {
+		response = append(response, models.CrawlListResponse{
+			ID:              crawl.ID,
+			URL:             crawl.URL,
+			PageTitle:       crawl.PageTitle,
+			CreatedAt:       crawl.CreatedAt,
+			Headings:        crawl.Headings,
+			InternalLinks:   crawl.InternalLinks,
+			ExternalLinks:   crawl.ExternalLinks,
+			InaccessibleLinks: crawl.InaccessibleLinks,
+			HasLoginForm:    crawl.HasLoginForm,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 type CrawlHandler struct {
 	db *database.Database
 }
@@ -23,7 +57,6 @@ func NewCrawlHandler(db *database.Database) *CrawlHandler {
 }
 
 func (h *CrawlHandler) CrawlURL(c *gin.Context) {
-	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -36,10 +69,8 @@ func (h *CrawlHandler) CrawlURL(c *gin.Context) {
 		return
 	}
 
-	// Check for debug mode
 	debug := c.Query("debug") == "true"
 
-	// Parse the URL to ensure it's valid
 	parsedURL, err := url.ParseRequestURI(req.URL)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid URL"})

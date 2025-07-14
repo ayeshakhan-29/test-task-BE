@@ -124,3 +124,6 @@ Statement: CREATE TABLE users (
 2025/07/14 04:15:33.797395 [INFO ] main.go:85 Shutting down server...
 2025/07/14 04:15:33.797637 [INFO ] main.go:96 Server exited properly
 2025/07/14 04:15:37.120806 [INFO ] main.go:75 Server is running on port 8080
+2025/07/14 04:26:28.881324 [INFO ] main.go:85 Shutting down server...
+2025/07/14 04:26:28.881864 [INFO ] main.go:96 Server exited properly
+2025/07/14 04:26:31.380343 [INFO ] main.go:75 Server is running on port 8080

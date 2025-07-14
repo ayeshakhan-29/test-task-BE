@@ -15,16 +15,19 @@ func SetupRoutes(router *gin.Engine, db *database.Database) {
 		// Health check
 		v1.GET("/health", healthHandler.HealthCheck)
 
-		// Auth routes
-		v1.POST("/signup", authHandler.Signup)
-		v1.POST("/login", authHandler.Login)
+		// Authentication
+		authGroup := v1.Group("/auth")
+		{
+			authGroup.POST("/signup", authHandler.Signup)
+			authGroup.POST("/login", authHandler.Login)
+		}
 
 		// Protected routes
-		authRoutes := v1.Group("/")
-		authRoutes.Use(middleware.AuthMiddleware())
-		// Initialize the handler once
-		crawlHandler := NewCrawlHandler(db)
-		// Register the route with the full path
-		authRoutes.POST("crawl", crawlHandler.CrawlURL)
+		protected := v1.Group("", middleware.AuthMiddleware())
+		{
+			crawlHandler := NewCrawlHandler(db)
+			protected.POST("/crawl", crawlHandler.CrawlURL)
+			protected.GET("/crawls", crawlHandler.ListCrawls)
+		}
 	}
 }
