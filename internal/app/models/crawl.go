@@ -42,8 +42,32 @@ type CrawlResult struct {
 	Headings          HeadingCounts `json:"headings" gorm:"type:JSON"`
 	InternalLinks     int          `json:"internal_links" gorm:"default:0"`
 	ExternalLinks     int          `json:"external_links" gorm:"default:0"`
-	InaccessibleLinks int          `json:"inaccessible_links" gorm:"default:0"`
+	InaccessibleLinks StringSlice  `json:"inaccessible_links" gorm:"type:JSON"`
 	HasLoginForm      bool         `json:"has_login_form" gorm:"default:false"`
 	UserID            uint64       `json:"user_id" gorm:"index;not null"`
 	User              User         `json:"-" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+// Scan implements the sql.Scanner interface for CrawlResult
+func (c *CrawlResult) ScanInaccessibleLinks(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to scan JSON value: %v", value)
+	}
+	
+	// Try to unmarshal as number first
+	var num int
+	if err := json.Unmarshal(bytes, &num); err == nil {
+		// If it's a number, create an empty slice
+		c.InaccessibleLinks = make(StringSlice, 0)
+		return nil
+	}
+
+	// If not a number, try to unmarshal as array
+	var links []string
+	if err := json.Unmarshal(bytes, &links); err != nil {
+		return err
+	}
+	c.InaccessibleLinks = links
+	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -23,27 +24,85 @@ func (h *CrawlHandler) ListCrawls(c *gin.Context) {
 		return
 	}
 
-	// Get all crawls for this user
 	var crawls []models.CrawlResult
 	if err := h.db.DB.Where("user_id = ?", userID).Find(&crawls).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crawls"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crawl results"})
 		return
 	}
 
-	// Convert to response format
-	var response []models.CrawlListResponse
+	response := make([]models.CrawlListResponse, 0, len(crawls))
 	for _, crawl := range crawls {
+		// Convert the JSON value to a slice if it's a number
+		if len(crawl.InaccessibleLinks) == 0 {
+			crawl.InaccessibleLinks = make(models.StringSlice, 0)
+		}
 		response = append(response, models.CrawlListResponse{
 			ID:              crawl.ID,
 			URL:             crawl.URL,
 			PageTitle:       crawl.PageTitle,
 			CreatedAt:       crawl.CreatedAt,
+			HTMLVersion:     crawl.HTMLVersion,
 			Headings:        crawl.Headings,
 			InternalLinks:   crawl.InternalLinks,
 			ExternalLinks:   crawl.ExternalLinks,
 			InaccessibleLinks: crawl.InaccessibleLinks,
 			HasLoginForm:    crawl.HasLoginForm,
 		})
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *CrawlHandler) GetCrawlByID(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get crawl ID from URL parameter
+	crawlID := c.Param("id")
+	if crawlID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Crawl ID is required"})
+		return
+	}
+
+	// Convert string ID to uint64
+	crawlIDUint, err := strconv.ParseUint(crawlID, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid crawl ID format"})
+		return
+	}
+
+	// Find the crawl record
+	var crawl models.CrawlResult
+	if err := h.db.DB.First(&crawl, "id = ?", crawlIDUint).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Crawl not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error: " + err.Error()})
+		return
+	}
+
+	// Check if user owns this crawl
+	if crawl.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authorized to view this crawl"})
+		return
+	}
+
+	// Convert to response format
+	response := models.CrawlListResponse{
+		ID:              crawl.ID,
+		URL:             crawl.URL,
+		PageTitle:       crawl.PageTitle,
+		CreatedAt:       crawl.CreatedAt,
+		HTMLVersion:     crawl.HTMLVersion,
+		Headings:        crawl.Headings,
+		InternalLinks:   crawl.InternalLinks,
+		ExternalLinks:   crawl.ExternalLinks,
+		InaccessibleLinks: crawl.InaccessibleLinks,
+		HasLoginForm:    crawl.HasLoginForm,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -223,8 +282,8 @@ func (h *CrawlHandler) CrawlURL(c *gin.Context) {
 
 	// Extract data
 	result := models.CrawlResult{
-		URL:        req.URL,
-		UserID:     userID.(uint64),
+		URL:    req.URL,
+		UserID: userID.(uint64),
 		HTMLVersion: func() string {
 			version, err := extractHTMLVersionFromURL(req.URL)
 			if err != nil {
@@ -246,18 +305,36 @@ func (h *CrawlHandler) CrawlURL(c *gin.Context) {
 	}
 	result.Headings = headings
 
-	// Count links
-	internalLinks, externalLinks, inaccessibleLinks := countLinks(doc, parsedURL.Hostname())
+	// Count links and get broken links
+	internalLinks, externalLinks, _, brokenLinks := countLinks(doc, parsedURL.Hostname())
 	result.InternalLinks = internalLinks
 	result.ExternalLinks = externalLinks
-	result.InaccessibleLinks = inaccessibleLinks
+	result.InaccessibleLinks = brokenLinks
 
 	// Check for login form
 	result.HasLoginForm = hasLoginForm(doc)
 
-	// Save to database
-	if err := h.db.Create(&result).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save crawl result"})
+	// Check if a crawl entry with the same URL and user ID already exists
+	var existingCrawl models.CrawlResult
+	err = h.db.DB.Where("url = ? AND user_id = ?", req.URL, userID).First(&existingCrawl).Error
+
+	if err == nil {
+		// Update existing crawl
+		result.ID = existingCrawl.ID
+		result.CreatedAt = existingCrawl.CreatedAt // Preserve original creation time
+		if err := h.db.DB.Save(&result).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update crawl result"})
+			return
+		}
+	} else if err == gorm.ErrRecordNotFound {
+		// Create new crawl if not exists
+		if err := h.db.DB.Create(&result).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save crawl result"})
+			return
+		}
+	} else {
+		// Handle other database errors
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error: " + err.Error()})
 		return
 	}
 
@@ -316,8 +393,10 @@ func extractHTMLVersionFromURL(url string) (string, error) {
 		}
 	}
 }
-func countLinks(doc *goquery.Document, hostname string) (int, int, int) {
+
+func countLinks(doc *goquery.Document, hostname string) (int, int, int, []string) {
 	internal, external, inaccessible := 0, 0, 0
+	var brokenLinks []string
 
 	doc.Find("a[href]").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
@@ -325,26 +404,26 @@ func countLinks(doc *goquery.Document, hostname string) (int, int, int) {
 			return
 		}
 
-		// Check if link is internal or external
-		u, err := url.Parse(href)
-		if err != nil {
+		// Check if link is accessible
+		resp, err := http.Head(href)
+		if err != nil || resp.StatusCode >= 400 {
+			brokenLinks = append(brokenLinks, href)
+			inaccessible++
 			return
 		}
 
-		if u.Hostname() == "" || u.Hostname() == hostname {
-			internal++
-		} else {
-			external++
-			// Check if external link is accessible
-			if resp, err := http.Head(href); err == nil {
-				if resp.StatusCode >= 400 {
-					inaccessible++
-				}
+		if strings.HasPrefix(href, "http") {
+			if strings.Contains(href, hostname) {
+				internal++
+			} else {
+				external++
 			}
+		} else {
+			internal++
 		}
 	})
 
-	return internal, external, inaccessible
+	return internal, external, inaccessible, brokenLinks
 }
 
 func hasLoginForm(doc *goquery.Document) bool {
